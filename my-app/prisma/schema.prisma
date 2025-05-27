@@ -1,0 +1,27 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model schedule {
+  schedule_id    Int      @id @default(autoincrement()) @map("schedule_id")
+  client_id      Int      @map("client_id")
+  country_code   String   @map("country_code") @db.VarChar(10)
+  key_id         Int      @map("key_id")
+  schedule_date  DateTime @map("schedule_date") @db.Date
+  campaign_title String   @map("campaign_title") @db.VarChar(255)
+  campaign_desc  String   @map("campaign_desc") @db.VarChar(255)
+  campaing_id    Int      @map("campaing_id")
+
+  @@map("schedule")
+}

@@ -9,7 +9,7 @@ const Header: React.FC = async () => {
   return (
     <header className="px-8 py-4 flex justify-between items-center bg-white shadow-sm">
       <div className="text-lg font-semibold text-gray-900">
-        Email Campaigns Automation Platform
+        Campaigns Automation Platform
       </div>
       <nav className="flex items-center space-x-4">
         {!userId ? (
