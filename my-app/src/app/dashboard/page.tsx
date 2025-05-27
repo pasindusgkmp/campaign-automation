@@ -7,7 +7,7 @@ const Dashboard: React.FC = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="flex gap-8">
-        <Link href="#" className="no-underline">
+        <Link href="/scrape" className="no-underline">
           <Card className="w-80 cursor-pointer hover:shadow-lg transition">
             <CardHeader>
               <CardTitle className="text-center">Scrape</CardTitle>
