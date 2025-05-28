@@ -21,7 +21,7 @@ model schedule {
   schedule_date  DateTime @map("schedule_date") @db.Date
   campaign_title String   @map("campaign_title") @db.VarChar(255)
   campaign_desc  String   @map("campaign_desc") @db.VarChar(255)
-  campaing_id    Int      @map("campaing_id")
+  
 
   @@map("schedule")
 }

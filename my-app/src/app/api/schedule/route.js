@@ -12,7 +12,7 @@ export async function POST(request) {
             schedule_date: new Date(body.schedule_date),
             campaign_title: body.campaign_title,
             campaign_desc: body.campaign_desc,
-            campaing_id: Number(body.campaing_id)
+            campaing_id: 0              //Number(body.campaing_id)
         }
     });
 
@@ -26,6 +26,25 @@ export async function POST(request) {
 export async function GET() {
     const schedules = await prisma.schedule.findMany();
     return NextResponse.json(schedules, { status: 200 });
+}
+
+export async function PUT(request) {
+  const body = await request.json();
+  const { schedule_id, ...data } = body;
+  const updated = await prisma.schedule.update({
+    where: { schedule_id: Number(schedule_id) },
+    data,
+  });
+  return NextResponse.json({ message: "Updated", data: updated }, { status: 200 });
+}
+
+export async function DELETE(request) {
+  const body = await request.json();
+  const { schedule_id } = body;
+  await prisma.schedule.delete({
+    where: { schedule_id: Number(schedule_id) },
+  });
+  return NextResponse.json({ message: "Deleted" }, { status: 200 });
 }
 
 
