@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 // Define a type for your schedule data
 interface Schedule {
@@ -25,13 +25,35 @@ export default function Home() {
     campaing_id: ''
   });
 
+  const [schedules, setSchedules] = useState<Schedule[]>([]);
+  const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-  const [schedules, setSchedules] = useState<Schedule[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
+
+  // Fetch schedules from the API
+  const fetchSchedules = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/schedule");
+      if (!res.ok) throw new Error("Failed to fetch schedules");
+      const data = await res.json();
+      setSchedules(Array.isArray(data) ? data : []);
+    } catch (err) {
+      setError("Failed to fetch schedules");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSchedules();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,14 +88,17 @@ export default function Home() {
         campaing_id: ''
       });
 
-      const updatedSchedules = await fetch('/api/schedule');
-      setSchedules(await updatedSchedules.json());
+      // Refetch schedules to update the table
+      await fetchSchedules();
     } catch (err) {
       setMessage('❌ Failed to submit campaign.');
     } finally {
       setSubmitting(false);
     }
   };
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>{error}</div>;
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
