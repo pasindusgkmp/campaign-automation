@@ -11,8 +11,7 @@ export async function POST(request) {
             key_id: Number(body.key_id),
             schedule_date: new Date(body.schedule_date),
             campaign_title: body.campaign_title,
-            campaign_desc: body.campaign_desc,
-            campaing_id: 0              //Number(body.campaing_id)
+            campaign_desc: body.campaign_desc
         }
     });
 

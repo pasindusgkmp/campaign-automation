@@ -25,3 +25,20 @@ model schedule {
 
   @@map("schedule")
 }
+
+model client {
+  client_id   Int    @id @default(autoincrement())
+  client_name String
+  // ... any other fields ...
+}
+
+model country {
+  country_id   Int    @id @default(autoincrement())
+  country_code String @unique
+  country_name String
+}
+
+   model keyword {
+     key_id   Int    @id @default(autoincrement())
+     key_name String
+   }

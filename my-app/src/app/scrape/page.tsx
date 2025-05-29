@@ -14,6 +14,12 @@ interface Schedule {
   campaing_id: number;
 }
 
+// Add client type
+interface Client {
+  client_id: number;
+  client_name: string;
+}
+
 export default function ScrapePage() {
   const [form, setForm] = useState({
     campaign_title: '',
@@ -37,6 +43,11 @@ export default function ScrapePage() {
   const recordsPerPage = 10;
   const totalPages = Math.ceil(filtered.length / recordsPerPage);
   const paginated = filtered.slice((page - 1) * recordsPerPage, page * recordsPerPage);
+  const [clients, setClients] = useState<Client[]>([]);
+  const [countries, setCountries] = useState<{ country_code: string, country_name: string }[]>([]);
+  const [countryFilter, setCountryFilter] = useState('');
+  const [keywords, setKeywords] = useState<{ key_id: number, key_name: string }[]>([]);
+  const [keywordFilter, setKeywordFilter] = useState('');
 
   // Fetch schedules from the API
   const fetchSchedules = async () => {
@@ -56,6 +67,28 @@ export default function ScrapePage() {
       setLoading(false);
     }
   };
+
+  // Fetch clients for dropdown
+  useEffect(() => {
+    fetch('/api/client')
+      .then(res => res.json())
+      .then(data => setClients(data))
+      .catch(() => setClients([]));
+  }, []);
+
+  useEffect(() => {
+    fetch('/api/country')
+      .then(res => res.json())
+      .then(data => setCountries(data))
+      .catch(() => setCountries([]));
+  }, []);
+
+  useEffect(() => {
+    fetch('/api/keyword')
+      .then(res => res.json())
+      .then(data => setKeywords(data))
+      .catch(() => setKeywords([]));
+  }, []);
 
   useEffect(() => {
     fetchSchedules();
@@ -98,7 +131,7 @@ export default function ScrapePage() {
   }
 
   // Handle form
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
@@ -192,6 +225,13 @@ export default function ScrapePage() {
     }
   };
 
+  const filteredCountries = countries.filter(c =>
+    c.country_name.toLowerCase().includes(countryFilter.toLowerCase())
+  );
+  const filteredKeywords = keywords.filter(k =>
+    k.key_name.toLowerCase().includes(keywordFilter.toLowerCase())
+  );
+
   if (loading) return <div>Loading...</div>;
   if (error) return <div>{error}</div>;
 
@@ -279,27 +319,27 @@ export default function ScrapePage() {
           </div>
           <div style={{ maxHeight: '420px', overflowY: 'auto' }}>
             <table className="min-w-full border border-gray-200 rounded-lg overflow-hidden table-fixed">
-              <thead className="bg-gray-100">
-                <tr>
-                  <th className="px-4 py-2 border-b">Title</th>
-                  <th className="px-4 py-2 border-b">Description</th>
-                  <th className="px-4 py-2 border-b">Client</th>
-                  <th className="px-4 py-2 border-b">Country</th>
+          <thead className="bg-gray-100">
+            <tr>
+              <th className="px-4 py-2 border-b">Title</th>
+              <th className="px-4 py-2 border-b">Description</th>
+              <th className="px-4 py-2 border-b">Client</th>
+              <th className="px-4 py-2 border-b">Country</th>
                   <th className="px-4 py-2 border-b">Key ID</th>
-                  <th className="px-4 py-2 border-b">Date</th>
+              <th className="px-4 py-2 border-b">Date</th>
                   <th className="px-4 py-2 border-b">Status</th>
                   <th className="px-4 py-2 border-b">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
+            </tr>
+          </thead>
+          <tbody>
                 {paginated.map((schedule) => (
-                  <tr key={schedule.schedule_id} className="text-center">
-                    <td className="px-4 py-2 border-b">{schedule.campaign_title}</td>
-                    <td className="px-4 py-2 border-b">{schedule.campaign_desc}</td>
-                    <td className="px-4 py-2 border-b">{schedule.client_id}</td>
-                    <td className="px-4 py-2 border-b">{schedule.country_code}</td>
-                    <td className="px-4 py-2 border-b">{schedule.key_id}</td>
-                    <td className="px-4 py-2 border-b">{schedule.schedule_date.slice(0, 10)}</td>
+              <tr key={schedule.schedule_id} className="text-center">
+                <td className="px-4 py-2 border-b">{schedule.campaign_title}</td>
+                <td className="px-4 py-2 border-b">{schedule.campaign_desc}</td>
+                <td className="px-4 py-2 border-b">{clients.find(c => c.client_id === schedule.client_id)?.client_name || schedule.client_id}</td>
+                <td className="px-4 py-2 border-b">{countries.find(c => c.country_code === schedule.country_code)?.country_name || schedule.country_code}</td>
+                    <td className="px-4 py-2 border-b">{keywords.find(k => k.key_id === schedule.key_id)?.key_name || schedule.key_id}</td>
+                <td className="px-4 py-2 border-b">{schedule.schedule_date.slice(0, 10)}</td>
                     <td className="px-4 py-2 border-b">{getStatus(schedule.schedule_date)}</td>
                     <td className="px-4 py-2 border-b flex gap-2 justify-center">
                       <button
@@ -321,10 +361,10 @@ export default function ScrapePage() {
                 {Array.from({ length: recordsPerPage - paginated.length }).map((_, i) => (
                   <tr key={`empty-${i}`} className="text-center">
                     <td colSpan={8} className="px-4 py-2 border-b">&nbsp;</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+              </tr>
+            ))}
+          </tbody>
+        </table>
           </div>
           {/* Pagination Controls */}
           <div className="flex justify-center items-center gap-2 mt-4">
@@ -372,35 +412,35 @@ export default function ScrapePage() {
                   className="border px-3 py-2 rounded w-full"
                   required
                 />
-                <input
+                <select
                   name="client_id"
                   value={form.client_id}
                   onChange={handleChange}
-                  autoComplete="off"
-                  placeholder="Client ID"
-                  type="number"
                   className="border px-3 py-2 rounded w-full"
                   required
-                />
-                <input
+                  disabled={clients.length === 0}
+                >
+                  <option value="">{clients.length === 0 ? 'Loading clients...' : 'Select Client'}</option>
+                  {clients.map(client => (
+                    <option key={client.client_id} value={client.client_id}>
+                      {client.client_name}
+                    </option>
+                  ))}
+                </select>
+                <select
                   name="country_code"
                   value={form.country_code}
                   onChange={handleChange}
-                  autoComplete="off"
-                  placeholder="Country"
                   className="border px-3 py-2 rounded w-full"
                   required
-                />
-                <input
-                  name="key_id"
-                  value={form.key_id}
-                  onChange={handleChange}
-                  autoComplete="off"
-                  placeholder="Key ID"
-                  type="number"
-                  className="border px-3 py-2 rounded w-full"
-                  required
-                />
+                >
+                  <option value="">Select Country</option>
+                  {countries.map(country => (
+                    <option key={country.country_code} value={country.country_code}>
+                      {country.country_name}
+                    </option>
+                  ))}
+                </select>
                 <input
                   name="schedule_date"
                   value={form.schedule_date}
@@ -410,6 +450,20 @@ export default function ScrapePage() {
                   className="border px-3 py-2 rounded w-full"
                   required
                 />
+                <select
+                  name="key_id"
+                  value={form.key_id}
+                  onChange={handleChange}
+                  className="border px-3 py-2 rounded w-full"
+                  required
+                >
+                  <option value="">Select Keyword</option>
+                  {keywords.map(keyword => (
+                    <option key={keyword.key_id} value={keyword.key_id}>
+                      {keyword.key_name}
+                    </option>
+                  ))}
+                </select>
                 <div className="col-span-1 md:col-span-2 flex gap-2 mt-4">
                   <button
                     type="submit"
