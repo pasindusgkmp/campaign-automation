@@ -38,7 +38,7 @@ model country {
   country_name String
 }
 
-   model keyword {
+model keyword {
      key_id   Int    @id @default(autoincrement())
      key_name String
-   }
+}

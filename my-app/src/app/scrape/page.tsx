@@ -325,7 +325,7 @@ export default function ScrapePage() {
               <th className="px-4 py-2 border-b">Description</th>
               <th className="px-4 py-2 border-b">Client</th>
               <th className="px-4 py-2 border-b">Country</th>
-                  <th className="px-4 py-2 border-b">Key ID</th>
+                  <th className="px-4 py-2 border-b">Keyword</th>
               <th className="px-4 py-2 border-b">Date</th>
                   <th className="px-4 py-2 border-b">Status</th>
                   <th className="px-4 py-2 border-b">Actions</th>

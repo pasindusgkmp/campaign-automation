@@ -19,7 +19,7 @@ const Dashboard: React.FC = () => {
             </CardContent>
           </Card>
         </Link>
-        <Link href="#" className="no-underline">
+        <Link href="/createcampaign" className="no-underline">
           <Card className="w-80 cursor-pointer hover:shadow-lg transition">
             <CardHeader>
               <CardTitle className="text-center">Create Campaign</CardTitle>
