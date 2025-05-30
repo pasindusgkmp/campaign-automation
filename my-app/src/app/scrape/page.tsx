@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Select from 'react-select';
 
 // Define a type for your schedule data
 interface Schedule {
@@ -28,6 +29,7 @@ export default function ScrapePage() {
     country_code: '',
     key_id: '',
     schedule_date: '',
+    status: '', // for filtering only
   });
 
   const [schedules, setSchedules] = useState<Schedule[]>([]);
@@ -41,13 +43,12 @@ export default function ScrapePage() {
   const [editId, setEditId] = useState<number | null>(null);
   const [page, setPage] = useState(1);
   const recordsPerPage = 10;
-  const totalPages = Math.ceil(filtered.length / recordsPerPage);
-  const paginated = filtered.slice((page - 1) * recordsPerPage, page * recordsPerPage);
   const [clients, setClients] = useState<Client[]>([]);
   const [countries, setCountries] = useState<{ country_code: string, country_name: string }[]>([]);
   const [countryFilter, setCountryFilter] = useState('');
   const [keywords, setKeywords] = useState<{ key_id: number, key_name: string }[]>([]);
   const [keywordFilter, setKeywordFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
 
   // Fetch schedules from the API
   const fetchSchedules = async () => {
@@ -93,19 +94,6 @@ export default function ScrapePage() {
   useEffect(() => {
     fetchSchedules();
   }, []);
-
-  useEffect(() => {
-    // Do NOT reverse again here, just filter
-    setFiltered(
-      schedules.filter((c) =>
-        c.campaign_title.toLowerCase().includes(search.toLowerCase())
-      )
-    );
-  }, [search, schedules]);
-
-  useEffect(() => {
-    setPage(1); // Reset to first page on search or data change
-  }, [search, schedules]);
 
   // Statistics
   const totalCampaigns = schedules.length;
@@ -183,6 +171,7 @@ export default function ScrapePage() {
         country_code: '',
         key_id: '',
         schedule_date: '',
+        status: '',
       });
       setEditId(null);
       setShowModal(false);
@@ -202,6 +191,7 @@ export default function ScrapePage() {
       country_code: schedule.country_code,
       key_id: String(schedule.key_id),
       schedule_date: schedule.schedule_date.slice(0, 10),
+      status: getStatus(schedule.schedule_date),
     });
     setEditId(schedule.schedule_id);
     setShowModal(true);
@@ -225,12 +215,18 @@ export default function ScrapePage() {
     }
   };
 
-  const filteredCountries = countries.filter(c =>
-    c.country_name.toLowerCase().includes(countryFilter.toLowerCase())
-  );
-  const filteredKeywords = keywords.filter(k =>
-    k.key_name.toLowerCase().includes(keywordFilter.toLowerCase())
-  );
+  // Filtered data based on filters
+  const filteredData = schedules.filter((c) => {
+    const matchesTitle = c.campaign_title.toLowerCase().includes(search.toLowerCase());
+    const matchesClient = !form.client_id || String(c.client_id) === form.client_id;
+    const matchesCountry = !form.country_code || c.country_code === form.country_code;
+    const matchesKeyword = !form.key_id || String(c.key_id) === form.key_id;
+    const status = getStatus(c.schedule_date);
+    const matchesStatus = !form.status || status === form.status;
+    return matchesTitle && matchesClient && matchesCountry && matchesKeyword && matchesStatus;
+  });
+  const paginated = filteredData.slice((page - 1) * recordsPerPage, page * recordsPerPage);
+  const totalPages = Math.ceil(filteredData.length / recordsPerPage);
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>{error}</div>;
@@ -249,6 +245,7 @@ export default function ScrapePage() {
                 country_code: '',
                 key_id: '',
                 schedule_date: '',
+                status: '',
               });
               setEditId(null);
               setShowModal(true);
@@ -258,13 +255,6 @@ export default function ScrapePage() {
             + Add Campaign
           </button>
         </div>
-        <input
-          type="text"
-          placeholder="Type in to Search"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full mb-6 px-4 py-2 rounded border border-gray-300"
-        />
 
         {/* Statistics Cards */}
         <div className="flex flex-wrap gap-4 mb-8">
@@ -317,29 +307,81 @@ export default function ScrapePage() {
               </select>
             </div>
           </div>
+          {/* Add filter row below the table title */}
+          <div className="flex flex-wrap gap-2 mb-4">
+            <input
+              type="text"
+              placeholder="Filter by Title"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="border px-2 py-1 rounded w-40"
+            />
+            <select
+              value={form.client_id}
+              onChange={e => setForm(f => ({ ...f, client_id: e.target.value }))}
+              className="border px-2 py-1 rounded w-40"
+            >
+              <option value="">All Clients</option>
+              {clients.map(client => (
+                <option key={client.client_id} value={client.client_id}>{client.client_name}</option>
+              ))}
+            </select>
+            <select
+              value={form.country_code}
+              onChange={e => setForm(f => ({ ...f, country_code: e.target.value }))}
+              className="border px-2 py-1 rounded w-40"
+            >
+              <option value="">All Countries</option>
+              {countries.map(country => (
+                <option key={country.country_code} value={country.country_code}>{country.country_name}</option>
+              ))}
+            </select>
+            <Select
+              name="key_id_filter"
+              value={keywords.find(k => String(k.key_id) === form.key_id) || null}
+              onChange={option => setForm(f => ({ ...f, key_id: option ? String(option.key_id) : '' }))}
+              options={keywords}
+              getOptionLabel={option => option.key_name}
+              getOptionValue={option => String(option.key_id)}
+              placeholder="All Keywords"
+              isClearable
+              classNamePrefix="react-select"
+              styles={{ container: base => ({ ...base, width: 180 }) }}
+            />
+            <select
+              value={form.status}
+              onChange={e => setForm(f => ({ ...f, status: e.target.value }))}
+              className="border px-2 py-1 rounded w-40"
+            >
+              <option value="">All Status</option>
+              <option value="Active">Active</option>
+              <option value="Scheduled">Scheduled</option>
+              <option value="Complete">Complete</option>
+            </select>
+          </div>
           <div style={{ maxHeight: '420px', overflowY: 'auto' }}>
             <table className="min-w-full border border-gray-200 rounded-lg overflow-hidden table-fixed">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="px-4 py-2 border-b">Title</th>
-              <th className="px-4 py-2 border-b">Description</th>
-              <th className="px-4 py-2 border-b">Client</th>
-              <th className="px-4 py-2 border-b">Country</th>
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="px-4 py-2 border-b">Title</th>
+                  <th className="px-4 py-2 border-b">Description</th>
+                  <th className="px-4 py-2 border-b">Client</th>
+                  <th className="px-4 py-2 border-b">Country</th>
                   <th className="px-4 py-2 border-b">Keyword</th>
-              <th className="px-4 py-2 border-b">Date</th>
+                  <th className="px-4 py-2 border-b">Date</th>
                   <th className="px-4 py-2 border-b">Status</th>
                   <th className="px-4 py-2 border-b">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
+                </tr>
+              </thead>
+              <tbody>
                 {paginated.map((schedule) => (
-              <tr key={schedule.schedule_id} className="text-center">
-                <td className="px-4 py-2 border-b">{schedule.campaign_title}</td>
-                <td className="px-4 py-2 border-b">{schedule.campaign_desc}</td>
-                <td className="px-4 py-2 border-b">{clients.find(c => c.client_id === schedule.client_id)?.client_name || schedule.client_id}</td>
-                <td className="px-4 py-2 border-b">{countries.find(c => c.country_code === schedule.country_code)?.country_name || schedule.country_code}</td>
+                  <tr key={schedule.schedule_id} className="text-center">
+                    <td className="px-4 py-2 border-b">{schedule.campaign_title}</td>
+                    <td className="px-4 py-2 border-b">{schedule.campaign_desc}</td>
+                    <td className="px-4 py-2 border-b">{clients.find(c => c.client_id === schedule.client_id)?.client_name || schedule.client_id}</td>
+                    <td className="px-4 py-2 border-b">{countries.find(c => c.country_code === schedule.country_code)?.country_name || schedule.country_code}</td>
                     <td className="px-4 py-2 border-b">{keywords.find(k => k.key_id === schedule.key_id)?.key_name || schedule.key_id}</td>
-                <td className="px-4 py-2 border-b">{schedule.schedule_date.slice(0, 10)}</td>
+                    <td className="px-4 py-2 border-b">{schedule.schedule_date.slice(0, 10)}</td>
                     <td className="px-4 py-2 border-b">{getStatus(schedule.schedule_date)}</td>
                     <td className="px-4 py-2 border-b flex gap-2 justify-center">
                       <button
@@ -361,10 +403,10 @@ export default function ScrapePage() {
                 {Array.from({ length: recordsPerPage - paginated.length }).map((_, i) => (
                   <tr key={`empty-${i}`} className="text-center">
                     <td colSpan={8} className="px-4 py-2 border-b">&nbsp;</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
           {/* Pagination Controls */}
           <div className="flex justify-center items-center gap-2 mt-4">
@@ -450,20 +492,19 @@ export default function ScrapePage() {
                   className="border px-3 py-2 rounded w-full"
                   required
                 />
-                <select
-                  name="key_id"
-                  value={form.key_id}
-                  onChange={handleChange}
-                  className="border px-3 py-2 rounded w-full"
-                  required
-                >
-                  <option value="">Select Keyword</option>
-                  {keywords.map(keyword => (
-                    <option key={keyword.key_id} value={keyword.key_id}>
-                      {keyword.key_name}
-                    </option>
-                  ))}
-                </select>
+                <div className="md:col-span-2">
+                  <Select
+                    name="key_id"
+                    value={keywords.find(k => String(k.key_id) === form.key_id) || null}
+                    onChange={option => setForm({ ...form, key_id: option ? String(option.key_id) : '' })}
+                    options={keywords}
+                    getOptionLabel={option => option.key_name}
+                    getOptionValue={option => String(option.key_id)}
+                    placeholder="Select or search keyword..."
+                    isClearable
+                    classNamePrefix="react-select"
+                  />
+                </div>
                 <div className="col-span-1 md:col-span-2 flex gap-2 mt-4">
                   <button
                     type="submit"
