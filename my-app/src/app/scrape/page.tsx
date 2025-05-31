@@ -128,6 +128,18 @@ export default function ScrapePage() {
     setSubmitting(true);
     setMessage(null);
 
+    // Check for duplicate campaign on the same date (regardless of past, present, or future)
+    const isDuplicate = schedules.some(s =>
+      s.campaign_title.trim().toLowerCase() === form.campaign_title.trim().toLowerCase() &&
+      s.schedule_date.slice(0, 10) === form.schedule_date &&
+      (!editId || s.schedule_id !== editId)
+    );
+    if (isDuplicate) {
+      setMessage("❌ This campaign is already scheduled on this date.");
+      setSubmitting(false);
+      return;
+    }
+
     try {
       if (editId) {
         // Update
@@ -521,9 +533,21 @@ export default function ScrapePage() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => {
+                    onClick={async () => {
                       setShowModal(false);
                       setEditId(null);
+                      setMessage(null);
+                      setForm({
+                        campaign_title: '',
+                        campaign_desc: '',
+                        client_id: '',
+                        country_code: '',
+                        key_id: '',
+                        schedule_date: '',
+                        status: '',
+                      });
+                      setSearch('');
+                      await fetchSchedules();
                     }}
                     className="bg-gray-300 text-gray-800 px-4 py-2 rounded w-full"
                   >

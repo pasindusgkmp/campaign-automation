@@ -4,6 +4,18 @@ const prisma = new PrismaClient();
 
 export async function POST(request) {
     const body = await request.json();
+    // Check for any campaign on the same date
+    const existing = await prisma.schedule.findFirst({
+        where: {
+            schedule_date: new Date(body.schedule_date),
+        },
+    });
+    if (existing) {
+        return NextResponse.json(
+            { message: '❌ A campaign is already scheduled on this date.' },
+            { status: 400 }
+        );
+    }
     const newSchedule = await prisma.schedule.create({
         data: {
             client_id: Number(body.client_id),
@@ -14,7 +26,6 @@ export async function POST(request) {
             campaign_desc: body.campaign_desc
         }
     });
-
 
     return NextResponse.json(
         { message: 'Schedule created successfully', data: newSchedule },
@@ -30,6 +41,19 @@ export async function GET() {
 export async function PUT(request) {
   const body = await request.json();
   const { schedule_id, ...data } = body;
+  // Check for any campaign on the same date (excluding current record)
+  const existing = await prisma.schedule.findFirst({
+    where: {
+      schedule_date: new Date(data.schedule_date),
+      NOT: { schedule_id: Number(schedule_id) },
+    },
+  });
+  if (existing) {
+    return NextResponse.json(
+      { message: '❌ A campaign is already scheduled on this date.' },
+      { status: 400 }
+    );
+  }
   const updated = await prisma.schedule.update({
     where: { schedule_id: Number(schedule_id) },
     data,
