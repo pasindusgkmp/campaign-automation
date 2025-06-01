@@ -42,3 +42,14 @@ model keyword {
      key_id   Int    @id @default(autoincrement())
      key_name String
 }
+
+model daycount {
+  daycount_id   Int    @id @default(autoincrement()) @map("daycount_id")
+  client_id     Int    @map("client_id")
+  country_code  String @map("country_code") @db.VarChar(10)
+  key_id        Int    @map("key_id")
+  count         Int    @map("count")
+  Availability  String @map("Availability") @db.VarChar(20)
+
+  @@map("daycount")
+}
