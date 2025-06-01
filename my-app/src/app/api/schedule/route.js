@@ -54,9 +54,15 @@ export async function PUT(request) {
       { status: 400 }
     );
   }
+  // Ensure schedule_date is a Date object and remove status field
+  const { status, ...rest } = data;
+  const updateData = {
+    ...rest,
+    schedule_date: new Date(data.schedule_date),
+  };
   const updated = await prisma.schedule.update({
     where: { schedule_id: Number(schedule_id) },
-    data,
+    data: updateData,
   });
   return NextResponse.json({ message: "Updated", data: updated }, { status: 200 });
 }
