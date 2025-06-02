@@ -21,6 +21,9 @@ interface Client {
   client_name: string;
 }
 
+// Hardcoded totals for each country
+const COUNTRY_TOTALS: Record<string, number> = { Ca: 359, Au: 458, Us: 1357 };
+
 export default function ScrapePage() {
   const [form, setForm] = useState({
     campaign_title: '',
@@ -49,6 +52,9 @@ export default function ScrapePage() {
   const [keywords, setKeywords] = useState<{ key_id: number, key_name: string }[]>([]);
   const [keywordFilter, setKeywordFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+
+  // Add state for preview
+  const [availabilityPreview, setAvailabilityPreview] = useState<{ status: string, available: number | null } | null>(null);
 
   // Fetch schedules from the API
   const fetchSchedules = async () => {
@@ -94,6 +100,36 @@ export default function ScrapePage() {
   useEffect(() => {
     fetchSchedules();
   }, []);
+
+  // Fetch preview when client, country, and keyword are selected
+  useEffect(() => {
+    const fetchPreview = async () => {
+      if (!form.client_id || !form.country_code || !form.key_id) {
+        setAvailabilityPreview(null);
+        return;
+      }
+      try {
+        const res = await fetch(`/api/daycount?client_id=${form.client_id}&country_code=${form.country_code}&key_id=${form.key_id}`);
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        const total = COUNTRY_TOTALS[form.country_code] || 0;
+        if (data && data.Availability) {
+          // If found, show status and available count
+          setAvailabilityPreview({
+            status: data.Availability,
+            available: data.Availability === 'Available' ? total - (data.count || 0) : 0,
+          });
+        } else {
+          // Not found, show as available and total
+          setAvailabilityPreview({ status: 'Available', available: total });
+        }
+      } catch {
+        setAvailabilityPreview(null);
+      }
+    };
+    fetchPreview();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.client_id, form.country_code, form.key_id]);
 
   // Statistics
   const totalCampaigns = schedules.length;
@@ -555,6 +591,19 @@ export default function ScrapePage() {
                   </button>
                 </div>
               </form>
+              {/* Availability Preview */}
+              {form.client_id && form.country_code && form.key_id && (
+                <div className="mt-4 p-3 bg-gray-100 rounded text-center">
+                  {availabilityPreview ? (
+                    <>
+                      <div><b>Availability:</b> {availabilityPreview.status}</div>
+                      <div><b>How much is available:</b> {availabilityPreview.available}</div>
+                    </>
+                  ) : (
+                    <div>Checking availability...</div>
+                  )}
+                </div>
+              )}
               {message && <p className="mt-4 text-lg">{message}</p>}
             </div>
           </div>
