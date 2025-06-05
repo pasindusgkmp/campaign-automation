@@ -57,6 +57,9 @@ export default function ScrapePage() {
   // Add state for preview
   const [availabilityPreview, setAvailabilityPreview] = useState<{ status: string, available: number | null } | null>(null);
 
+  // Add date filter state
+  const [dateFilter, setDateFilter] = useState('');
+
   // Fetch schedules from the API
   const fetchSchedules = async () => {
     setLoading(true);
@@ -272,7 +275,8 @@ export default function ScrapePage() {
     const matchesKeyword = !form.key_id || String(c.key_id) === form.key_id;
     const status = getStatus(c.schedule_date);
     const matchesStatus = !form.status || status === form.status;
-    return matchesTitle && matchesClient && matchesCountry && matchesKeyword && matchesStatus;
+    const matchesDate = !dateFilter || c.schedule_date.slice(0, 10) === dateFilter;
+    return matchesTitle && matchesClient && matchesCountry && matchesKeyword && matchesStatus && matchesDate;
   });
   const paginated = filteredData.slice((page - 1) * recordsPerPage, page * recordsPerPage);
   const totalPages = Math.ceil(filteredData.length / recordsPerPage);
@@ -407,6 +411,24 @@ export default function ScrapePage() {
               <option value="Scheduled">Scheduled</option>
               <option value="Complete">Complete</option>
             </select>
+            <input
+              type="date"
+              value={dateFilter}
+              onChange={e => setDateFilter(e.target.value)}
+              className="border px-2 py-1 rounded w-40"
+              placeholder="Filter by Date"
+            />
+            <button
+              type="button"
+              onClick={() => {
+                setSearch('');
+                setForm(f => ({ ...f, client_id: '', country_code: '', key_id: '', status: '' }));
+                setDateFilter('');
+              }}
+              className="border px-3 py-1 rounded bg-gray-200 text-gray-700 hover:bg-gray-300"
+            >
+              Reset Filters
+            </button>
           </div>
           <div style={{ maxHeight: '420px', overflowY: 'auto' }}>
             <table className="min-w-full border border-gray-200 rounded-lg overflow-hidden table-fixed">
