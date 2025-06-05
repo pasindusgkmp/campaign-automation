@@ -21,6 +21,7 @@ model schedule {
   schedule_date  DateTime @map("schedule_date") @db.Date
   campaign_title String   @map("campaign_title") @db.VarChar(255)
   campaign_desc  String   @map("campaign_desc") @db.VarChar(255)
+  download_link  String?  @map("download_link") @db.VarChar(255)
   
 
   @@map("schedule")

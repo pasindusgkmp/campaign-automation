@@ -23,7 +23,8 @@ export async function POST(request) {
             key_id: Number(body.key_id),
             schedule_date: new Date(body.schedule_date),
             campaign_title: body.campaign_title,
-            campaign_desc: body.campaign_desc
+            campaign_desc: body.campaign_desc,
+            download_link: body.download_link || null,
         }
     });
 
@@ -59,6 +60,7 @@ export async function PUT(request) {
   const updateData = {
     ...rest,
     schedule_date: new Date(data.schedule_date),
+    download_link: data.download_link || null,
   };
   const updated = await prisma.schedule.update({
     where: { schedule_id: Number(schedule_id) },

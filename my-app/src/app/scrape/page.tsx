@@ -13,6 +13,7 @@ interface Schedule {
   campaign_title: string;
   campaign_desc: string;
   campaing_id: number;
+  download_link?: string;
 }
 
 // Add client type
@@ -418,6 +419,7 @@ export default function ScrapePage() {
                   <th className="px-4 py-2 border-b">Keyword</th>
                   <th className="px-4 py-2 border-b">Date</th>
                   <th className="px-4 py-2 border-b">Status</th>
+                  <th className="px-4 py-2 border-b">Download Link</th>
                   <th className="px-4 py-2 border-b">Actions</th>
                 </tr>
               </thead>
@@ -431,6 +433,20 @@ export default function ScrapePage() {
                     <td className="px-4 py-2 border-b">{keywords.find(k => k.key_id === schedule.key_id)?.key_name || schedule.key_id}</td>
                     <td className="px-4 py-2 border-b">{schedule.schedule_date.slice(0, 10)}</td>
                     <td className="px-4 py-2 border-b">{getStatus(schedule.schedule_date)}</td>
+                    <td className="px-4 py-2 border-b">
+                      {schedule.download_link ? (
+                        <a
+                          href={schedule.download_link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline"
+                        >
+                          Download
+                        </a>
+                      ) : (
+                        "-"
+                      )}
+                    </td>
                     <td className="px-4 py-2 border-b flex gap-2 justify-center">
                       <button
                         className="text-blue-600 hover:underline"
