@@ -461,6 +461,7 @@ export default function ScrapePage() {
                           href={schedule.download_link}
                           target="_blank"
                           rel="noopener noreferrer"
+                          download
                           className="text-blue-600 hover:underline"
                         >
                           Download
