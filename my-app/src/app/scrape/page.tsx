@@ -137,25 +137,40 @@ export default function ScrapePage() {
 
   // Statistics
   const totalCampaigns = schedules.length;
-  const activeCampaigns = schedules.filter((c) => getStatus(c.schedule_date) === "Active").length;
+  const activeCampaigns = schedules.filter((c) => getStatus(c.schedule_date, c.download_link) === "Active").length;
   const successRate =
     totalCampaigns === 0
       ? 0
       : Math.round(
-          (schedules.filter((c) => getStatus(c.schedule_date) === "Complete").length /
+          (schedules.filter((c) => getStatus(c.schedule_date, c.download_link) === "Complete").length /
             totalCampaigns) *
             100
         );
 
   // Status logic
-  function getStatus(dateStr: string) {
+  function getStatus(dateStr: string, downloadLink?: string) {
     const today = new Date();
     const date = new Date(dateStr);
     today.setHours(0,0,0,0);
     date.setHours(0,0,0,0);
-    if (date.getTime() === today.getTime()) return "Active";
-    if (date.getTime() > today.getTime()) return "Scheduled";
-    return "Complete";
+
+    // If date is before today, it's Scheduled
+    if (date.getTime() < today.getTime()) {
+      return "Scheduled";
+    }
+    
+    // If date is today
+    if (date.getTime() === today.getTime()) {
+      // If download link exists, it's Complete
+      if (downloadLink) {
+        return "Complete";
+      }
+      // Otherwise it's Active
+      return "Active";
+    }
+    
+    // If date is in the future, it's Scheduled
+    return "Scheduled";
   }
 
   // Handle form
@@ -243,7 +258,7 @@ export default function ScrapePage() {
       country_code: schedule.country_code,
       key_id: String(schedule.key_id),
       schedule_date: schedule.schedule_date.slice(0, 10),
-      status: getStatus(schedule.schedule_date),
+      status: getStatus(schedule.schedule_date, schedule.download_link),
     });
     setEditId(schedule.schedule_id);
     setShowModal(true);
@@ -273,7 +288,7 @@ export default function ScrapePage() {
     const matchesClient = !form.client_id || String(c.client_id) === form.client_id;
     const matchesCountry = !form.country_code || c.country_code === form.country_code;
     const matchesKeyword = !form.key_id || String(c.key_id) === form.key_id;
-    const status = getStatus(c.schedule_date);
+    const status = getStatus(c.schedule_date, c.download_link);
     const matchesStatus = !form.status || status === form.status;
     const matchesDate = !dateFilter || c.schedule_date.slice(0, 10) === dateFilter;
     return matchesTitle && matchesClient && matchesCountry && matchesKeyword && matchesStatus && matchesDate;
@@ -454,7 +469,7 @@ export default function ScrapePage() {
                     <td className="px-4 py-2 border-b">{countries.find(c => c.country_code === schedule.country_code)?.country_name || schedule.country_code}</td>
                     <td className="px-4 py-2 border-b">{keywords.find(k => k.key_id === schedule.key_id)?.key_name || schedule.key_id}</td>
                     <td className="px-4 py-2 border-b">{schedule.schedule_date.slice(0, 10)}</td>
-                    <td className="px-4 py-2 border-b">{getStatus(schedule.schedule_date)}</td>
+                    <td className="px-4 py-2 border-b">{getStatus(schedule.schedule_date, schedule.download_link)}</td>
                     <td className="px-4 py-2 border-b">
                       {schedule.download_link ? (
                         <a
