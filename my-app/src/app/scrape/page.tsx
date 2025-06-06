@@ -403,7 +403,9 @@ export default function ScrapePage() {
             >
               <option value="">All Countries</option>
               {countries.map(country => (
-                <option key={country.country_code} value={country.country_code}>{country.country_name}</option>
+                <option key={country.country_code} value={country.country_code}>
+                  {country.country_name}
+                </option>
               ))}
             </select>
             <Select
@@ -447,8 +449,8 @@ export default function ScrapePage() {
               Reset Filters
             </button>
           </div>
-          <div style={{ maxHeight: '420px', overflowY: 'auto' }}>
-            <table className="min-w-full border border-gray-200 rounded-lg overflow-hidden table-fixed">
+          <div style={{ maxHeight: '420px', overflowY: 'auto', minWidth: '1100px', width: '100%', overflowX: 'auto' }}>
+            <table className="min-w-[1100px] w-full border border-gray-200 rounded-lg overflow-hidden table-fixed">
               <thead className="bg-gray-100">
                 <tr>
                   <th className="px-4 py-2 border-b">Title</th>
