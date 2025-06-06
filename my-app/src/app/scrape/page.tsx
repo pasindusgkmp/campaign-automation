@@ -68,10 +68,12 @@ export default function ScrapePage() {
       const res = await fetch("/api/schedule");
       if (!res.ok) throw new Error("Failed to fetch schedules");
       const data = await res.json();
-      // Reverse ONCE and use for both
-      const reversed = Array.isArray(data) ? [...data].reverse() : [];
-      setSchedules(reversed);
-      setFiltered(reversed);
+      // Sort by schedule_id descending (newest first)
+      const sorted = Array.isArray(data)
+        ? [...data].sort((a, b) => b.schedule_id - a.schedule_id)
+        : [];
+      setSchedules(sorted);
+      setFiltered(sorted);
     } catch (err) {
       setError("Failed to fetch schedules");
     } finally {
