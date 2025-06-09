@@ -298,6 +298,18 @@ export default function ScrapePage() {
   const paginated = filteredData.slice((page - 1) * recordsPerPage, page * recordsPerPage);
   const totalPages = Math.ceil(filteredData.length / recordsPerPage);
 
+  // Helper to convert Google Sheets link to export CSV link
+  function getDownloadUrl(link?: string) {
+    if (!link) return '';
+    const match = link.match(/https:\/\/docs\.google\.com\/spreadsheets\/d\/([a-zA-Z0-9-_]+)(?:\/.*?gid=(\d+))?/);
+    if (match) {
+      const sheetId = match[1];
+      const gid = match[2] || '0';
+      return `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&id=${sheetId}&gid=${gid}`;
+    }
+    return link;
+  }
+
   if (loading) return <div>Loading...</div>;
   if (error) return <div>{error}</div>;
 
@@ -477,9 +489,7 @@ export default function ScrapePage() {
                     <td className="px-4 py-2 border-b">
                       {schedule.download_link ? (
                         <a
-                          href={schedule.download_link}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                          href={getDownloadUrl(schedule.download_link)}
                           download
                           className="text-blue-600 hover:underline"
                         >
