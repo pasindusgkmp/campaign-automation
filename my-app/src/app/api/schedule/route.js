@@ -25,6 +25,7 @@ export async function POST(request) {
             campaign_title: body.campaign_title,
             campaign_desc: body.campaign_desc,
             download_link: body.download_link || null,
+            download_status: body.download_status || null,
         }
     });
 
@@ -61,6 +62,7 @@ export async function PUT(request) {
     ...rest,
     schedule_date: new Date(data.schedule_date),
     download_link: data.download_link || null,
+    download_status: data.download_status || null,
   };
   const updated = await prisma.schedule.update({
     where: { schedule_id: Number(schedule_id) },

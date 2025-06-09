@@ -22,6 +22,7 @@ model schedule {
   campaign_title String   @map("campaign_title") @db.VarChar(255)
   campaign_desc  String   @map("campaign_desc") @db.VarChar(255)
   download_link  String?  @map("download_link") @db.VarChar(255)
+  download_status String?  @map("download_status") @db.VarChar(20)
   
 
   @@map("schedule")

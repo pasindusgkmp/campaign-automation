@@ -14,6 +14,7 @@ interface Schedule {
   campaign_desc: string;
   campaing_id: number;
   download_link?: string;
+  download_status?: string;
 }
 
 // Add client type
@@ -151,18 +152,18 @@ export default function ScrapePage() {
 
   // Statistics
   const totalCampaigns = schedules.length;
-  const activeCampaigns = schedules.filter((c) => getStatus(c.schedule_date, c.download_link) === "Active").length;
+  const activeCampaigns = schedules.filter((c) => getStatus(c.schedule_date, c.download_link, c.download_status) === "Active").length;
   const successRate =
     totalCampaigns === 0
       ? 0
       : Math.round(
-          (schedules.filter((c) => getStatus(c.schedule_date, c.download_link) === "Complete").length /
+          (schedules.filter((c) => getStatus(c.schedule_date, c.download_link, c.download_status) === "Complete").length /
             totalCampaigns) *
             100
         );
 
   // Status logic
-  function getStatus(dateStr: string, downloadLink?: string) {
+  function getStatus(dateStr: string, downloadLink?: string, downloadStatus?: string) {
     const today = new Date();
     const date = new Date(dateStr);
     today.setHours(0,0,0,0);
@@ -175,9 +176,13 @@ export default function ScrapePage() {
     
     // If date is today
     if (date.getTime() === today.getTime()) {
-      // If download link exists, it's Complete
-      if (downloadLink) {
+      // If download_status is Complete, it's Complete
+      if (downloadStatus === 'Complete') {
         return "Complete";
+      }
+      // If download link exists but not complete, it's Scrapping
+      if (downloadLink) {
+        return "Scrapping";
       }
       // Otherwise it's Active
       return "Active";
@@ -272,7 +277,7 @@ export default function ScrapePage() {
       country_code: schedule.country_code,
       key_id: String(schedule.key_id),
       schedule_date: schedule.schedule_date.slice(0, 10),
-      status: getStatus(schedule.schedule_date, schedule.download_link),
+      status: getStatus(schedule.schedule_date, schedule.download_link, schedule.download_status),
     });
     setEditId(schedule.schedule_id);
     setShowModal(true);
@@ -302,7 +307,7 @@ export default function ScrapePage() {
     const matchesClient = !form.client_id || String(c.client_id) === form.client_id;
     const matchesCountry = !form.country_code || c.country_code === form.country_code;
     const matchesKeyword = !form.key_id || String(c.key_id) === form.key_id;
-    const status = getStatus(c.schedule_date, c.download_link);
+    const status = getStatus(c.schedule_date, c.download_link, c.download_status);
     const matchesStatus = !form.status || status === form.status;
     const matchesDate = !dateFilter || c.schedule_date.slice(0, 10) === dateFilter;
     return matchesTitle && matchesClient && matchesCountry && matchesKeyword && matchesStatus && matchesDate;
@@ -499,8 +504,8 @@ export default function ScrapePage() {
                     <td className="px-4 py-2 border-b">{schedule.schedule_date.slice(0, 10)}</td>
                     <td className="px-4 py-2 border-b">
                       {(() => {
-                        const status = getStatus(schedule.schedule_date, schedule.download_link);
-                        if (status === 'Complete') {
+                        const status = getStatus(schedule.schedule_date, schedule.download_link, schedule.download_status);
+                        if (status === 'Scrapping') {
                           return (
                             <span className="text-red-600 font-semibold flex items-center justify-center">
                               <RedSpinner /> Scrapping
