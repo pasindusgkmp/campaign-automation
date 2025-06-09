@@ -25,6 +25,18 @@ interface Client {
 // Hardcoded totals for each country
 const COUNTRY_TOTALS: Record<string, number> = { Ca: 359, Au: 458, Us: 1357 };
 
+// Add a simple red loading spinner component
+function RedSpinner() {
+  return (
+    <span className="inline-block align-middle mr-1">
+      <svg className="animate-spin h-4 w-4 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+      </svg>
+    </span>
+  );
+}
+
 export default function ScrapePage() {
   const [form, setForm] = useState({
     campaign_title: '',
@@ -485,7 +497,19 @@ export default function ScrapePage() {
                     <td className="px-4 py-2 border-b">{countries.find(c => c.country_code === schedule.country_code)?.country_name || schedule.country_code}</td>
                     <td className="px-4 py-2 border-b">{keywords.find(k => k.key_id === schedule.key_id)?.key_name || schedule.key_id}</td>
                     <td className="px-4 py-2 border-b">{schedule.schedule_date.slice(0, 10)}</td>
-                    <td className="px-4 py-2 border-b">{getStatus(schedule.schedule_date, schedule.download_link)}</td>
+                    <td className="px-4 py-2 border-b">
+                      {(() => {
+                        const status = getStatus(schedule.schedule_date, schedule.download_link);
+                        if (status === 'Complete') {
+                          return (
+                            <span className="text-red-600 font-semibold flex items-center justify-center">
+                              <RedSpinner /> Scrapping
+                            </span>
+                          );
+                        }
+                        return status;
+                      })()}
+                    </td>
                     <td className="px-4 py-2 border-b">
                       {schedule.download_link ? (
                         <a
