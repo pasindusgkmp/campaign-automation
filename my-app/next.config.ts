@@ -40,6 +40,29 @@
 
 /////////
 
+// import type { NextConfig } from "next";
+
+// const nextConfig: NextConfig = {
+//   eslint: {
+//     ignoreDuringBuilds: true,
+//   },
+//   typescript: {
+//     ignoreBuildErrors: true,
+//   },
+//   experimental: {
+//     serverComponentsExternalPackages: ['@prisma/client'],
+//   },
+// };
+
+// export default nextConfig;
+
+
+
+
+/////
+
+
+
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
@@ -49,9 +72,7 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  experimental: {
-    serverComponentsExternalPackages: ['@prisma/client'],
-  },
+  serverExternalPackages: ['@prisma/client'],
 };
 
 export default nextConfig;
