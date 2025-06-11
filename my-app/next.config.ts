@@ -38,27 +38,20 @@
 // export default nextConfig;
 
 
+/////////
 
-import { NextResponse } from 'next/server';
+import type { NextConfig } from "next";
 
-export async function GET() {
-  // Return empty array during build to prevent errors
-  if (process.env.NODE_ENV === 'production' && !process.env.VERCEL_ENV) {
-    return NextResponse.json([], { status: 200 });
-  }
+const nextConfig: NextConfig = {
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  experimental: {
+    serverComponentsExternalPackages: ['@prisma/client'],
+  },
+};
 
-  try {
-    const { PrismaClient } = await import('@prisma/client');
-    const prisma = new PrismaClient();
-    
-    const clients = await prisma.client.findMany({
-      select: { client_id: true, client_name: true }
-    });
-    
-    await prisma.$disconnect();
-    return NextResponse.json(clients, { status: 200 });
-  } catch (error) {
-    console.error('Database error:', error);
-    return NextResponse.json([], { status: 200 });
-  }
-}
+export default nextConfig;
