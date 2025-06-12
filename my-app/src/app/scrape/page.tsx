@@ -169,6 +169,16 @@ export default function ScrapePage() {
     today.setHours(0,0,0,0);
     date.setHours(0,0,0,0);
 
+    // If download_status is set, use it (case-insensitive)
+    if (downloadStatus) {
+      if (downloadStatus.toLowerCase() === 'scraping') {
+        return 'Scraping';
+      }
+      if (downloadStatus.toLowerCase() === 'complete') {
+        return 'Complete';
+      }
+    }
+
     // If date is before today, it's Scheduled
     if (date.getTime() < today.getTime()) {
       return "Scheduled";
@@ -176,10 +186,6 @@ export default function ScrapePage() {
     
     // If date is today
     if (date.getTime() === today.getTime()) {
-      // If download_status is Complete, it's Complete
-      if (downloadStatus === 'Complete') {
-        return "Complete";
-      }
       // If download link exists but not complete, it's Scrapping
       if (downloadLink) {
         return "Scrapping";
@@ -505,12 +511,15 @@ export default function ScrapePage() {
                     <td className="px-4 py-2 border-b">
                       {(() => {
                         const status = getStatus(schedule.schedule_date, schedule.download_link, schedule.download_status);
-                        if (status === 'Scrapping') {
+                        if (status.toLowerCase() === 'scraping' || status === 'Scrapping') {
                           return (
                             <span className="text-red-600 font-semibold flex items-center justify-center">
-                              <RedSpinner /> Scrapping
+                              <RedSpinner /> Scraping
                             </span>
                           );
+                        }
+                        if (status === 'Complete') {
+                          return <span className="text-green-700 font-semibold">Complete</span>;
                         }
                         return status;
                       })()}
